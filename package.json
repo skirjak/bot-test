@@ -23,6 +23,7 @@
     "express": "*",
     "body-parser": "*",
     "mongodb": "*",
-    "synchronize": "^0.9.14"
+    "synchronize": "^0.9.14",
+    "apiai": "3.0.3"
   }
 }

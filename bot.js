@@ -14,17 +14,35 @@ let app = express();
 // setup our datastore
 var datastore = require("./datastore").async;
 
+const apiai = require('apiai');
+const apiaiClient = apiai(process.env.APIAI_ACCESS_TOKEN);
+
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({
   extended: true
 }));
 
+
+//if (req.query['hub.mode'] === 'subscribe' &&
+//      req.query['apiai.verify_token'] === process.env.VERIFY_TOKEN) {
+//    console.log("Validating webhook");
+//    res.status(200).send(req.query['hub.challenge']);
+//  } else {
+//    console.error("Failed validation. Make sure the validation tokens match.");
+//    res.sendStatus(403);          
+//  }
+
 // Webhook validation
 app.get('/webhook', function(req, res) {
-  if (req.query['hub.mode'] === 'subscribe' &&
-      req.query['hub.verify_token'] === process.env.VERIFY_TOKEN) {
+  
+  console.log('Test req: ' + JSON.stringify(req.headers));
+  console.log('Test env: ' + process.env.VERIFY_TOKEN);
+  
+  console.log('res: ' + (process.env.VERIFY_TOKEN === req.headers['APIAI_VERIFY_TOKEN']));
+  
+  if (req.headers['apiai_verify_token'] === process.env.VERIFY_TOKEN) {
     console.log("Validating webhook");
-    res.status(200).send(req.query['hub.challenge']);
+    res.sendStatus(200);
   } else {
     console.error("Failed validation. Make sure the validation tokens match.");
     res.sendStatus(403);          

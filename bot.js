@@ -1,116 +1,7 @@
-//
-// This is main file containing code implementing the Express server and functionality for the Express echo bot.
-//
 'use strict';
-const express = require('express');
-const bodyParser = require('body-parser');
+
 const request = require('request');
-const path = require('path');
-var messengerButton = "<html><head><title>Facebook Messenger Bot</title></head><body><h3>Facebook Messenger Bot Example</h3>This is a bot based on Messenger Platform QuickStart. Find more details <a href=\"https://developers.facebook.com/docs/messenger-platform/guides/quick-start\">here</a><br><hr><p><a href=\"https://gomix.com/#!/remix/messenger-bot/ca73ace5-3fff-4b8f-81c5-c64452145271\"><img src=\"https://gomix.com/images/background-light/remix-on-gomix.svg\"></a></p><p><a href=\"https://gomix.com/#!/project/messenger-bot\">View Code</a></p></body></html>";
-
-// The rest of the code implements the routes for our Express server.
-let app = express();
-
-// setup our datastore
-var datastore = require("./datastore").async;
-
-const apiai = require('apiai');
-const apiaiClient = apiai(process.env.APIAI_ACCESS_TOKEN);
-
-app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({
-  extended: true
-}));
-
-
-//if (req.query['hub.mode'] === 'subscribe' &&
-//      req.query['apiai.verify_token'] === process.env.VERIFY_TOKEN) {
-//    console.log("Validating webhook");
-//    res.status(200).send(req.query['hub.challenge']);
-//  } else {
-//    console.error("Failed validation. Make sure the validation tokens match.");
-//    res.sendStatus(403);          
-//  }
-
-// Webhook validation
-app.get('/webhook', function(req, res) {
-  
-  console.log('Test req: ' + JSON.stringify(req.headers));
-  console.log('Test env: ' + process.env.VERIFY_TOKEN);
-  
-  console.log('res: ' + (process.env.VERIFY_TOKEN === req.headers['APIAI_VERIFY_TOKEN']));
-  
-  if (req.headers['apiai_verify_token'] === process.env.VERIFY_TOKEN) {
-    console.log("Validating webhook");
-    res.sendStatus(200);
-  } else {
-    console.error("Failed validation. Make sure the validation tokens match.");
-    res.sendStatus(403);          
-  }
-});
-
-// Display the web page
-app.get('/', function(req, res) {
-  res.writeHead(200, {'Content-Type': 'text/html'});
-  res.write(messengerButton);
-  res.end();
-});
-
-// Message processing
-app.post('/webhook', function (req, res) {
-  console.log(req.body);
-  var data = req.body;
-
-  // Make sure this is a page subscription
-  if (data.object === 'page') {
-    
-    // Iterate over each entry - there may be multiple if batched
-    data.entry.forEach(function(entry) {
-      var pageID = entry.id;
-      var timeOfEvent = entry.time;
-
-      // Iterate over each messaging event
-      entry.messaging.forEach(function(event) {
-        if (event.message) {
-          receivedMessage(event);
-        } else if (event.postback) {
-          receivedPostback(event);   
-        } else {
-          console.log("Webhook received unknown event: ", event);
-        }
-      });
-    });
-
-    // Assume all went well.
-    //
-    // You must send back a 200, within 20 seconds, to let us know
-    // you've successfully received the callback. Otherwise, the request
-    // will time out and we will keep trying to resend.
-    res.sendStatus(200);
-  }
-});
-
-
-// datastore example
-app.get("/delete", function (request, response) {
-  try {
-    datastore.set("posts", [])
-      .then(function(){
-        response.redirect("/");
-      });
-  } catch (err) {
-    handleError(err, response);
-  }
-});
-
-function handleError(err, response) {
-  response.status(500);
-  response.send(
-    "<html><head><title>Internal Server Error!</title></head><body><pre>"
-    + JSON.stringify(err, null, 2) + "</pre></body></pre>"
-  );
-}
-// 
+const apiai = require('apiai')(process.env.APIAI_ACCESS_TOKEN);
 
 // Incoming events handling
 function receivedMessage(event) {
@@ -127,6 +18,32 @@ function receivedMessage(event) {
 
   var messageText = message.text;
   var messageAttachments = message.attachments;
+  
+  ///
+  
+  let sender = event.sender.id;
+  let text = event.message.text;
+
+  let apiaiRequest = apiai.textRequest(text, {
+    sessionId: 'tabby_cat' // use any arbitrary id
+  });
+
+  apiaiRequest.on('response', (response) => {
+    // Got a response from api.ai. Let's POST to Facebook Messenger
+  });
+
+  apiaiRequest.on('error', (error) => {
+    console.log(error);
+  });
+
+  apiaiRequest.end();
+  
+  ///
+  
+  
+  
+  
+  
 
   if (messageText) {
     // If we receive a text message, check to see if it matches a keyword
@@ -135,7 +52,6 @@ function receivedMessage(event) {
       case 'generic':
         sendGenericMessage(senderID);
         break;
-
       default:
         sendTextMessage(senderID, messageText);
     }
@@ -246,7 +162,7 @@ function callSendAPI(messageData) {
   });  
 }
 
-// Set Express to listen out for HTTP requests
-var server = app.listen(process.env.PORT || 3000, function () {
-  console.log("Listening on port %s", server.address().port);
-});
+module.exports = {
+  receivedMessage: receivedMessage,
+  receivedPostback: receivedPostback
+};

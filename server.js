@@ -12,6 +12,32 @@ var messengerButton = "<html><head><title>Facebook Messenger Bot</title></head><
 // The rest of the code implements the routes for our Express server.
 let app = express();
 
+// setup a new database
+var Datastore = require('nedb'), 
+    // Security note: the database is saved to the file `datafile` on the local filesystem. It's deliberately placed in the `.data` directory
+    // which doesn't get copied if someone remixes the project.
+    db = new Datastore({ filename: '.data/datafile', autoload: true });
+
+// default user list
+var users = [
+      {"firstName":"John", "lastName":"Hancock"},
+      {"firstName":"Liz",  "lastName":"Smith"},
+      {"firstName":"Ahmed","lastName":"Khan"}
+    ];
+
+//db.count({}, function (err, count) {
+//  console.log("There are " + count + " users in the database");
+//  if(err) console.log("There's a problem with the database: ", err);
+//  else if(count<=0){ // empty database so needs populating
+//    // default users inserted in the database
+//    db.insert(users, function (err, usersAdded) {
+//      if(err) console.log("There's a problem with the database: ", err);
+//      else if(usersAdded) console.log("Default users inserted in the database");
+//    });
+//  }
+//});
+
+
 // setup our datastore
 var datastore = require("./datastore").async;
 
@@ -35,6 +61,12 @@ app.get('/webhook', function(req, res) {
 app.post('/webhook', function (req, res) {
   console.log(req.body);
   let data = req.body;
+  
+  
+  db.insert({ test: 'test' }, function (err, newDoc) {
+      if(err) console.log("There's a problem with the database: ", err);
+      else if(newDoc) console.log("Test inserted in the database");
+    });
 
   // Make sure this is a page subscription
   if (data.object === 'page') {

@@ -59,10 +59,10 @@ app.get('/webhook', function(req, res) {
 
 // Message processing
 app.post('/webhook', function (req, res) {
+
   console.log(req.body);
   let data = req.body;
-  
-  
+
   db.insert({ test: 'test' }, function (err, newDoc) {
       if(err) console.log("There's a problem with the database: ", err);
       else if(newDoc) console.log("Test inserted in the database");
@@ -102,6 +102,17 @@ app.get('/', function(req, res) {
   res.writeHead(200, {'Content-Type': 'text/html'});
   res.write(messengerButton);
   res.end();
+});
+
+// Display the web page
+app.get('/db', function(req, res) {
+
+    db.find({}, function (err, docs) {
+
+        res.send(docs).end();
+
+    });
+
 });
 
 // datastore example

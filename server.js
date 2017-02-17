@@ -25,22 +25,6 @@ var users = [
       {"firstName":"Ahmed","lastName":"Khan"}
     ];
 
-//db.count({}, function (err, count) {
-//  console.log("There are " + count + " users in the database");
-//  if(err) console.log("There's a problem with the database: ", err);
-//  else if(count<=0){ // empty database so needs populating
-//    // default users inserted in the database
-//    db.insert(users, function (err, usersAdded) {
-//      if(err) console.log("There's a problem with the database: ", err);
-//      else if(usersAdded) console.log("Default users inserted in the database");
-//    });
-//  }
-//});
-
-
-// setup our datastore
-var datastore = require("./datastore").async;
-
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({
   extended: true
@@ -59,10 +43,10 @@ app.get('/webhook', function(req, res) {
 
 // Message processing
 app.post('/webhook', function (req, res) {
-
   console.log(req.body);
   let data = req.body;
-
+  
+  
   db.insert({ test: 'test' }, function (err, newDoc) {
       if(err) console.log("There's a problem with the database: ", err);
       else if(newDoc) console.log("Test inserted in the database");
@@ -115,18 +99,6 @@ app.get('/db', function(req, res) {
 
 });
 
-// datastore example
-app.get("/delete", function (request, response) {
-  try {
-    datastore.set("posts", [])
-      .then(function(){
-        response.redirect("/");
-      });
-  } catch (err) {
-    handleError(err, response);
-  }
-});
-
 function handleError(err, response) {
   response.status(500);
   response.send(
@@ -134,7 +106,6 @@ function handleError(err, response) {
     + JSON.stringify(err, null, 2) + "</pre></body></pre>"
   );
 }
-
 
 // Set Express to listen out for HTTP requests
 var server = app.listen(process.env.PORT || 3000, function () {
